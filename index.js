@@ -16,6 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Cookies
+app.use(body)
 app.use(cookieParser());
 
 // CORS - Allow frontend origin and credentials (cookies)

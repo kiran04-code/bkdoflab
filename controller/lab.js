@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 
 // ---------------- REGISTER ----------------
 export const register = async (req, res) => {
-  console.log(req.body);
   try {
     const { laboratoryName, licenseId, email, password, location } = req.body;
 
@@ -13,14 +12,12 @@ export const register = async (req, res) => {
     }
 
     const existingEmail = await Laboratory.findOne({ email });
-    if (existingEmail) {
+    if (existingEmail)
       return res.status(400).json({ message: "Email already registered" });
-    }
 
     const existingLicense = await Laboratory.findOne({ licenseId });
-    if (existingLicense) {
+    if (existingLicense)
       return res.status(400).json({ message: "License ID already registered" });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -32,12 +29,13 @@ export const register = async (req, res) => {
       location,
     });
 
-    const Tokenlab = await createToken(newLab);
-    res.cookie("Tokenlab", Tokenlab, {
-      httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
-      secure: true,         // Ensures cookie is sent only over HTTPS
-      sameSite: "none",
+    const Tokenlab = await createToken(newLab); // Ensure this returns a string JWT
 
+    res.cookie("Tokenlab", Tokenlab, {
+      httpOnly: true,                  // Protects from JS access
+      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+      sameSite: "none",                // For cross-site usage
+      maxAge: 24 * 60 * 60 * 1000,    // 1 day
     });
 
     return res.status(201).json({
@@ -62,9 +60,7 @@ export const register = async (req, res) => {
       });
     }
 
-    if (!res.headersSent) {
-      return res.status(500).json({ message: "Server error", error: err.message });
-    }
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
@@ -72,10 +68,8 @@ export const register = async (req, res) => {
 export const loginlab = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
+    if (!email || !password)
       return res.status(400).json({ error: "Email and password are required" });
-    }
 
     const user = await Laboratory.findOne({ email });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
@@ -83,14 +77,13 @@ export const loginlab = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    const Tokenlab = createToken(user);
+    const Tokenlab = await createToken(user); // Always await if async
 
-    // Set cookie
     res.cookie("Tokenlab", Tokenlab, {
-        httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
-        secure: true,         // Ensures cookie is sent only over HTTPS
-        sameSite: "none",
-
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
@@ -113,15 +106,13 @@ export const logout = async (req, res) => {
   try {
     res.clearCookie("Tokenlab", {
       httpOnly: true,
-      secure: "production" === "production",
-      sameSite: "production" === "production" ? "None" : "Lax",
-    }).json({
-      success: true,
-      message: "Logged out successfully",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
     });
+    return res.json({ success: true, message: "Logged out successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
+    console.error("Logout error:", error);
+    return res.status(500).json({
       success: false,
       message: "Issue during logout",
     });
@@ -131,21 +122,13 @@ export const logout = async (req, res) => {
 // ---------------- AUTH ----------------
 export const Auth = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized access" });
-    }
+    if (!req.user)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const data = await Laboratory.findById(req.user._id);
-
-    res.json({
-      success: true,
-      userData: data
-    });
+    return res.json({ success: true, userData: data });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error("Auth error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
