@@ -29,13 +29,13 @@ export const register = async (req, res) => {
       location,
     });
 
-    const Tokenlab =  createToken(newLab); // Ensure this returns a string JWT
+    const Tokenlab =  await createToken(newLab); // Ensure this returns a string JWT
 
     res.cookie("Tokenlab", Tokenlab, {
-      httpOnly: true,                  // Protects from JS access
-      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
-      sameSite: "none",                // For cross-site usage
-      maxAge: 24 * 60 * 60 * 1000,    // 1 day
+                   httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
+                secure: true,         // Ensures cookie is sent only over HTTPS
+                sameSite: "none",
+   // 1 day
     });
 
     return res.status(201).json({
@@ -80,10 +80,10 @@ export const loginlab = async (req, res) => {
     const Tokenlab =  createToken(user); // Always await if async
 
     res.cookie("Tokenlab", Tokenlab, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000,
+                httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
+                secure: true,         // Ensures cookie is sent only over HTTPS
+                sameSite: "none",
+
     });
 
     return res.status(200).json({
