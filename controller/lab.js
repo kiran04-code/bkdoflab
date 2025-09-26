@@ -33,12 +33,11 @@ export const register = async (req, res) => {
     });
 
     const Tokenlab = await createToken(newLab);
-
-    // Set cookie
     res.cookie("Tokenlab", Tokenlab, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // secure in prod
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
+      secure: true,         // Ensures cookie is sent only over HTTPS
+      sameSite: "none",
+
     });
 
     return res.status(201).json({
@@ -88,9 +87,10 @@ export const loginlab = async (req, res) => {
 
     // Set cookie
     res.cookie("Tokenlab", Tokenlab, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
+        secure: true,         // Ensures cookie is sent only over HTTPS
+        sameSite: "none",
+
     });
 
     return res.status(200).json({
@@ -114,7 +114,7 @@ export const logout = async (req, res) => {
     res.clearCookie("Tokenlab", {
       httpOnly: true,
       secure: "production" === "production",
-      sameSite: "production"=== "production" ? "None" : "Lax",
+      sameSite: "production" === "production" ? "None" : "Lax",
     }).json({
       success: true,
       message: "Logged out successfully",
