@@ -14,7 +14,7 @@ config();
 const app = express();
 
 // Middlewares
-app.use(cors({ origin: "https://labbackend-2d5l.onrender.com", credentials:true }));
+app.use(cors({ origin: "https://labbackend-2d5l.onrender.com/", credentials:true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());

@@ -2,7 +2,7 @@ import { createToken } from "../auth/user.js";
 import Laboratory from "../model/lab.js";
 import bcrypt from "bcrypt";
 
-// Register Laboratory
+// ---------------- REGISTER ----------------
 export const register = async (req, res) => {
   console.log(req.body);
   try {
@@ -12,13 +12,11 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check duplicates for email
     const existingEmail = await Laboratory.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Check duplicates for licenseId
     const existingLicense = await Laboratory.findOne({ licenseId });
     if (existingLicense) {
       return res.status(400).json({ message: "License ID already registered" });
@@ -35,10 +33,12 @@ export const register = async (req, res) => {
     });
 
     const Tokenlab = await createToken(newLab);
+
+    // Set cookie
     res.cookie("Tokenlab", Tokenlab, {
       httpOnly: true,
-      secure: true,       // must be true if SameSite=None
-      sameSite: "None"    // allow cross-site
+      secure: process.env.NODE_ENV === "production", // secure in prod
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     });
 
     return res.status(201).json({
@@ -52,12 +52,10 @@ export const register = async (req, res) => {
         location: newLab.location,
       },
     });
-
   } catch (err) {
     console.error("Register Error:", err);
 
     if (err.code === 11000) {
-      // Handle duplicate key errors from MongoDB
       const field = Object.keys(err.keyValue)[0];
       return res.status(400).json({
         message: `${field} already exists`,
@@ -69,8 +67,9 @@ export const register = async (req, res) => {
       return res.status(500).json({ message: "Server error", error: err.message });
     }
   }
-};  
-// Login Laboratory
+};
+
+// ---------------- LOGIN ----------------
 export const loginlab = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -87,10 +86,11 @@ export const loginlab = async (req, res) => {
 
     const Tokenlab = createToken(user);
 
-    res.cookie("Tokenlab", token, {
+    // Set cookie
+    res.cookie("Tokenlab", Tokenlab, {
       httpOnly: true,
-      secure: true,        // required for SameSite=None
-      sameSite: "None"     // allow cross-site
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     });
 
     return res.status(200).json({
@@ -102,17 +102,20 @@ export const loginlab = async (req, res) => {
       },
       token: Tokenlab,
     });
-
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Logout Laboratory
+// ---------------- LOGOUT ----------------
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("Tokenlab").json({
+    res.clearCookie("Tokenlab", {
+      httpOnly: true,
+      secure: "production" === "production",
+      sameSite: "production"=== "production" ? "None" : "Lax",
+    }).json({
       success: true,
       message: "Logged out successfully",
     });
@@ -125,23 +128,24 @@ export const logout = async (req, res) => {
   }
 };
 
-
+// ---------------- AUTH ----------------
 export const Auth = async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, message: "Unauthorized access" });
     }
-    const id = req.user._id
-    const data = await Laboratory.findById(id)
+
+    const data = await Laboratory.findById(req.user._id);
+
     res.json({
       success: true,
       userData: data
-    })
+    });
   } catch (error) {
-    console.log(error)
-    return res.json({
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: error.message
-    })
+    });
   }
-}
+};
