@@ -21,7 +21,7 @@ app.use(cookieParser());
 // CORS - Allow frontend origin and credentials (cookies)
 app.use(
   cors({
-    origin: "http://localhost:8080", // replace with your frontend URL or localhost for dev
+    origin: "https://labbackend-2d5l.onrender.com", // replace with your frontend URL or localhost for dev
     credentials: true,
   })
 );
