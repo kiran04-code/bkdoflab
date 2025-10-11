@@ -19,9 +19,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS - Allow frontend origin and credentials (cookies)
+const allowedOrigins = [
+  "https://labbackend-2d5l.onrender.com",
+  "http://localhost:8000", // for local testing
+];
+
 app.use(
   cors({
-    origin: "https://labbackend-2d5l.onrender.com", // replace with your frontend URL or localhost for dev
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );

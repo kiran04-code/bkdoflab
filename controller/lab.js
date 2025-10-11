@@ -29,13 +29,13 @@ export const register = async (req, res) => {
       location,
     });
 
-    const Tokenlab =  await createToken(newLab); // Ensure this returns a string JWT
+    const Tokenlab = await createToken(newLab); // Ensure this returns a string JWT
 
     res.cookie("Tokenlab", Tokenlab, {
-                   httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
-                secure: true,         // Ensures cookie is sent only over HTTPS
-                sameSite: "none",
-   // 1 day
+      httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
+      secure: true,         // Ensures cookie is sent only over HTTPS
+      sameSite: "none",
+      // 1 day
     });
 
     return res.status(201).json({
@@ -77,12 +77,12 @@ export const loginlab = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    const Tokenlab =  createToken(user); // Always await if async
+    const Tokenlab = createToken(user); // Always await if async
 
     res.cookie("Tokenlab", Tokenlab, {
-                httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
-                secure: true,         // Ensures cookie is sent only over HTTPS
-                sameSite: "none",
+      httpOnly: true,       // Prevents client-side JavaScript from accessing the cookie
+      secure: true,         // Ensures cookie is sent only over HTTPS
+      sameSite: "none",
 
     });
 
