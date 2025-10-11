@@ -21,7 +21,7 @@ app.use(cookieParser());
 // CORS - Allow frontend origin and credentials (cookies)
 const allowedOrigins = [
   "https://labbackend-2d5l.onrender.com",
-  "http://localhost:8000", // for local testing
+  "http://localhost:8080", // for local testing
 ];
 
 app.use(
@@ -67,3 +67,4 @@ const PORT = process.env.PORT || 3005;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Local Server is Running on Port: http://localhost:${PORT}`);
 });
+
