@@ -3,7 +3,7 @@ import express from "express";
 import { config } from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { Auth, loginlab, register } from "./controller/lab.js";
+import { Auth, getAllOrodcust, getById, loginlab, register, StoreInDB } from "./controller/lab.js";
 import { dbConnection } from "./config/db.js";
 import { authUser } from "./middleware/user.js";
 
@@ -21,7 +21,8 @@ app.use(cookieParser());
 // CORS - Allow frontend origin and credentials (cookies)
 const allowedOrigins = [
   "https://labbackend-2d5l.onrender.com",
-  "http://localhost:8000", // for local testing
+  "https://cunsumerfronted-1.onrender.com",  
+  "http://localhost:8080", // for local testing
 ];
 
 app.use(
@@ -58,9 +59,12 @@ dbConnection(
   .catch((err) => console.log("MongoDB Error:", err));
 
 // ------------------- Routes -------------------
-app.post("/register", register);
-app.post("/login", loginlab); // Use POST for login
 app.get("/Auth", authUser("Tokenlab"), Auth);
+app.post("/register", register);
+app.post("/StoreInDB", StoreInDB);
+app.post("/login", loginlab); // Use POST for login
+app.get("/getAllOrodcust", getAllOrodcust); // Use POST for login
+app.get("/products/:id", getById); // Use POST for login
 
 // ------------------- Start Server -------------------
 const PORT = process.env.PORT || 3005;

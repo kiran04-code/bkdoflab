@@ -1,6 +1,8 @@
 import { createToken } from "../auth/user.js";
 import Laboratory from "../model/lab.js";
 import bcrypt from "bcrypt";
+import { ProductData } from "../model/Products.js";
+import qrcode from 'qrcode';
 
 // ---------------- REGISTER ----------------
 export const register = async (req, res) => {
@@ -132,3 +134,126 @@ export const Auth = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// 3. Implement the Controller Function
+// This function will handle the POST request from your frontend.
+export const StoreInDB = async (req, res) => {
+  try {
+    // Log the incoming data for debugging
+    console.log("Received data to store in DB:", req.body);
+
+    // Destructure all expected data from the request body
+    const {
+  ProductName,
+      
+      farmerId,
+      batchId,
+      licenseId,
+      testDate,
+      temperature,
+      humidity,
+      storageTime,
+      lightExposure,
+      soilPh,
+      soilMoisture,
+      soilNitrogen,
+      soilPhosphorus,
+      soilPotassium,
+      soilCarbon,
+      heavyMetalPb,
+      heavyMetalAs,
+      heavyMetalHg,
+      heavyMetalCd,
+      aflatoxinTotal,
+      pesticideResidue,
+      moistureContent,
+      essentialOil,
+      chlorophyllIndex,
+      leafSpots,
+      discoloration,
+      bacterialCount,
+      fungalCount,
+      ecoliPresent,
+      salmonellaPresent,
+      dnaAuthenticity,
+      certificateIpfsHash,
+    } = req.body;
+
+    // Optional: Check if a record with this batchId already exists
+    const existingProduct = await ProductData.findOne({ batchId });
+    if (existingProduct) {
+      return res.status(409).json({ // 409 Conflict
+        success: false,
+        message: `A record with Batch ID ${batchId} already exists.`,
+      });
+    }
+    const productUrl = `https://cunsumerfronted-1.onrender.com/products/${batchId}`;
+    const qrCodeDataUrl = await qrcode.toDataURL(productUrl)
+    const newProductRecord = new ProductData({
+      ProductName,
+      farmerId,
+      batchId,
+      licenseId,
+      testDate,
+      temperature,
+      humidity,
+      storageTime,
+      lightExposure,
+      soilPh,
+      soilMoisture,
+      soilNitrogen,
+      soilPhosphorus,
+      soilPotassium,
+      soilCarbon,
+      heavyMetalPb,
+      heavyMetalAs,
+      heavyMetalHg,
+      heavyMetalCd,
+      aflatoxinTotal,
+      pesticideResidue,
+      moistureContent,
+      essentialOil,
+      chlorophyllIndex,
+      leafSpots,
+      discoloration,
+      bacterialCount,
+      fungalCount,
+      ecoliPresent,
+      salmonellaPresent,
+      dnaAuthenticity,
+      certificateIpfsHash,
+      qrCodeDataUrl
+    });
+    await newProductRecord.save();
+    return res.status(201).json({ // 201 Created
+      success: true,
+      message: "Product data stored successfully in the database.",
+    });
+
+  } catch (error) {
+    console.error("Error storing data in DB:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while saving the data.",
+      error: error.message,
+    });
+  }
+};
+
+
+export const getAllOrodcust = async(req,res)=>{
+  const data = await  ProductData.find({})
+  return res.json({
+    success:true,
+    datas:data
+  })
+}
+
+export const getById = async(req,res)=>{
+const { id } = req.params; // ✅ correctly get the id from URL
+    const data = await ProductData.findOne({ batchId: id });
+  return res.json({
+    success:true,
+    datas:data
+  })
+}
